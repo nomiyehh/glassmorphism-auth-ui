@@ -40,7 +40,7 @@ A sleek, responsive authentication experience built with vanilla HTML, modern CS
 
 ## 🚀 Quick Start
 
-### 1. Clone the Repository
+###  Clone the Repository
 
 ```bash
 gh repo clone nomiyehh/glassmorphism-auth-ui
