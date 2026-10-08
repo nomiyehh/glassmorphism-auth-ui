@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraAuth // Nomaan Ahmad Portfolio Edition</title>
+  
+  <!-- Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome CDN for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              primary: 'var(--accent-primary)',
+              secondary: 'var(--accent-secondary)',
+              glow: 'var(--accent-glow)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --accent-primary: #8b5cf6;
+      --accent-secondary: #ec4899;
+      --accent-glow: rgba(139, 92, 246, 0.45);
+      --accent-bg-glow: rgba(139, 92, 246, 0.12);
+      --accent-border: rgba(167, 139, 250, 0.25);
+    }
+
+    [data-theme="cyber-cyan"] {
+      --accent-primary: #06b6d4;
+      --accent-secondary: #3b82f6;
+      --accent-glow: rgba(6, 182, 212, 0.45);
+      --accent-bg-glow: rgba(6, 182, 212, 0.12);
+      --accent-border: rgba(34, 211, 238, 0.25);
+    }
+
+    [data-theme="emerald-glow"] {
+      --accent-primary: #10b981;
+      --accent-secondary: #06b6d4;
+      --accent-glow: rgba(16, 185, 129, 0.45);
+      --accent-bg-glow: rgba(16, 185, 129, 0.12);
+      --accent-border: rgba(52, 211, 153, 0.25);
+    }
+
+    [data-theme="sunset-amber"] {
+      --accent-primary: #f59e0b;
+      --accent-secondary: #ef4444;
+      --accent-glow: rgba(245, 158, 11, 0.45);
+      --accent-bg-glow: rgba(245, 158, 11, 0.12);
+      --accent-border: rgba(251, 191, 36, 0.25);
+    }
+
+    .cyber-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+
+    .glass-panel {
+      background: rgba(15, 20, 32, 0.72);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 
+                  0 0 35px var(--accent-bg-glow);
+    }
+
+    .glass-input {
+      background: rgba(10, 14, 26, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-input:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-bg-glow);
+    }
+
+    .gradient-border-wrap {
+      position: relative;
+      border-radius: 1.5rem;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.03), var(--accent-border));
+    }
+
+    .aurora-sphere {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(95px);
+      opacity: 0.55;
+      pointer-events: none;
+      transition: transform 0.2s ease-out;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-[#07090e] text-slate-100 min-h-screen flex flex-col justify-between selection:bg-purple-500 selection:text-white relative overflow-x-hidden font-sans">
+
+  <!-- Interactive Particle Background Canvas -->
+  <canvas id="particleCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- Cyber Grid Lines -->
+  <div class="fixed inset-0 cyber-grid pointer-events-none z-0"></div>
+
+  <!-- Dynamic Aurora Orbs (interactive with mouse parallax) -->
+  <div id="orb1" class="aurora-sphere w-96 h-96 -top-24 -left-20 z-0" 
+       style="background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%);"></div>
+  <div id="orb2" class="aurora-sphere w-[28rem] h-[28rem] top-1/2 -right-32 z-0" 
+       style="background: radial-gradient(circle, var(--accent-secondary) 0%, transparent 70%);"></div>
+  <div id="orb3" class="aurora-sphere w-80 h-80 -bottom-24 left-1/3 z-0" 
+       style="background: radial-gradient(circle, var(--accent-primary) 0%, transparent 75%);"></div>
+
+  <!-- Top Navigation & Accent Bar -->
+  <header class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-glow text-white font-display font-extrabold text-base tracking-wider">
+        <span>NA</span>
+      </div>
+      <div>
+        <h1 class="font-display font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
+          Nomaan <span style="color: var(--accent-primary);">Ahmad</span>
+        </h1>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span> Verified Showcase
+          </span>
+          <p class="text-[11px] text-slate-400 font-mono tracking-wider hidden sm:inline">DEVELOPER EDITION</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Customizer Palette -->
+    <div class="flex items-center gap-2 bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-inner">
+      <span class="text-xs text-slate-400 font-medium hidden sm:inline mr-1"><i class="fa-solid fa-palette mr-1.5"></i>Theme</span>
+      
+      <button class="theme-btn w-5 h-5 rounded-full bg-violet-500 hover:scale-125 transition-all ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent focus:outline-none ring-white" 
+              data-theme-choice="default" title="Neon Violet"></button>
+      <button class="theme-btn w-5 h-5 rounded-full bg-cyan-400 hover:scale-125 transition-all ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent focus:outline-none" 
+              data-theme-choice="cyber-cyan" title="Cyber Cyan"></button>
+      <button class="theme-btn w-5 h-5 rounded-full bg-emerald-400 hover:scale-125 transition-all ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent focus:outline-none" 
+              data-theme-choice="emerald-glow" title="Emerald Glow"></button>
+      <button class="theme-btn w-5 h-5 rounded-full bg-amber-400 hover:scale-125 transition-all ring-2 ring-offset-2 ring-offset-slate-900 ring-transparent focus:outline-none" 
+              data-theme-choice="sunset-amber" title="Sunset Amber"></button>
+      
+      <div class="h-4 w-px bg-white/15 mx-1 hidden sm:block"></div>
+      <a href="https://github.com" target="_blank" rel="noreferrer" class="text-slate-400 hover:text-white transition-colors text-sm px-1.5 flex items-center gap-1.5" title="View Source on GitHub">
+        <i class="fa-brands fa-github text-base"></i>
+        <span class="text-xs hidden md:inline font-mono">GitHub</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Authentication Showcase Container -->
+  <main class="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8">
+    <div class="w-full max-w-[460px] gradient-border-wrap transition-transform duration-300">
+      <div class="glass-panel rounded-[1.45rem] p-6 sm:p-8 relative overflow-hidden">
+        
+        <!-- Subtle Top Glow Strip -->
+        <div class="absolute top-0 left-1/4 right-1/4 h-[2px] bg-gradient-to-r from-transparent via-brand-primary to-transparent opacity-80"></div>
+
+        <!-- Mode Toggle Pill (Sign In / Register) -->
+        <div class="relative bg-slate-950/70 p-1.5 rounded-2xl border border-white/5 mb-6 flex items-center">
+          <div id="tabIndicator" class="absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] bg-gradient-to-r from-brand-primary to-brand-secondary rounded-xl shadow-md transition-all duration-300 ease-out"></div>
+          
+          <button id="signInTabBtn" type="button" class="relative z-10 w-1/2 py-2 text-center text-sm font-semibold text-white transition-colors duration-200">
+            Sign In
+          </button>
+          <button id="signUpTabBtn" type="button" class="relative z-10 w-1/2 py-2 text-center text-sm font-semibold text-slate-400 hover:text-white transition-colors duration-200">
+            Create Account
+          </button>
+        </div>
+
+        <!-- Form Heading Area with Nomaan Ahmad Personalization -->
+        <div class="mb-6">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-slate-300 font-mono mb-2">
+            <i class="fa-solid fa-code text-[10px] text-brand-primary"></i> Portfolio Preview Mode
+          </div>
+          <h2 id="authHeading" class="text-2xl font-bold font-display tracking-tight text-white">
+            Welcome back, <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">Nomaan Ahmad</span>
+          </h2>
+          <p id="authSubheading" class="text-sm text-slate-400 mt-1">
+            Access your developer console and cloud workspaces.
+          </p>
+        </div>
+
+        <!-- Social Quick Logins -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+          <button type="button" class="social-auth-btn flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-900/60 border border-white/10 hover:border-slate-400/40 hover:bg-slate-800/60 transition-all text-xs font-medium text-slate-200 group">
+            <i class="fa-brands fa-github text-sm group-hover:scale-110 transition-transform"></i>
+            <span class="hidden sm:inline">GitHub</span>
+          </button>
+          <button type="button" class="social-auth-btn flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-900/60 border border-white/10 hover:border-slate-400/40 hover:bg-slate-800/60 transition-all text-xs font-medium text-slate-200 group">
+            <i class="fa-brands fa-google text-sm text-red-400 group-hover:scale-110 transition-transform"></i>
+            <span class="hidden sm:inline">Google</span>
+          </button>
+          <button type="button" class="social-auth-btn flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-900/60 border border-white/10 hover:border-slate-400/40 hover:bg-slate-800/60 transition-all text-xs font-medium text-slate-200 group">
+            <i class="fa-brands fa-apple text-sm group-hover:scale-110 transition-transform"></i>
+            <span class="hidden sm:inline">Apple</span>
+          </button>
+        </div>
+
+        <!-- Divider with Text -->
+        <div class="relative flex items-center justify-center mb-6">
+          <div class="border-t border-slate-700/60 w-full"></div>
+          <span class="bg-[#0f1420] px-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider relative">or continue with</span>
+          <div class="border-t border-slate-700/60 w-full"></div>
+        </div>
+
+        <!-- Main Form -->
+        <form id="authForm" novalidate class="space-y-4">
+          
+          <!-- Full Name Field (Sign Up Mode) -->
+          <div id="nameFieldGroup" class="hidden transition-all duration-300">
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">Full Name</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 pointer-events-none">
+                <i class="fa-regular fa-user text-sm"></i>
+              </span>
+              <input type="text" id="nameInput" value="Nomaan Ahmad" placeholder="Nomaan Ahmad"
+                     class="glass-input w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none">
+            </div>
+            <p id="nameError" class="text-xs text-rose-400 mt-1 hidden"></p>
+          </div>
+
+          <!-- Email Address Field (Pre-filled with Nomaan Ahmad) -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-medium text-slate-300">Email Address</label>
+              <span id="emailValidationFeedback" class="text-[11px] text-emerald-400 font-mono">Personalized</span>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 pointer-events-none">
+                <i class="fa-regular fa-envelope text-sm"></i>
+              </span>
+              <input type="email" id="emailInput" value="nomaan.ahmad@example.com" placeholder="nomaan.ahmad@example.com" required
+                     class="glass-input w-full pl-10 pr-10 py-3 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none">
+              <span id="emailCheckIcon" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-emerald-400 opacity-100 transition-opacity pointer-events-none">
+                <i class="fa-solid fa-circle-check text-sm"></i>
+              </span>
+            </div>
+            <p id="emailError" class="text-xs text-rose-400 mt-1 hidden"></p>
+          </div>
+
+          <!-- Password Field -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-medium text-slate-300">Password</label>
+              <button type="button" id="forgotPasswordBtn" class="text-xs text-slate-400 hover:text-brand-primary transition-colors focus:outline-none">
+                Forgot password?
+              </button>
+            </div>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 pointer-events-none">
+                <i class="fa-solid fa-lock text-sm"></i>
+              </span>
+              <input type="password" id="passwordInput" placeholder="••••••••••••" value="AuroraPass2026@" required
+                     class="glass-input w-full pl-10 pr-10 py-3 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none">
+              <!-- Toggle Visibility Button -->
+              <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-200 transition-colors focus:outline-none">
+                <i class="fa-regular fa-eye text-sm" id="pwdEyeIcon"></i>
+              </button>
+            </div>
+            <p id="passwordError" class="text-xs text-rose-400 mt-1 hidden"></p>
+          </div>
+
+          <!-- Interactive Password Strength Meter (Shown on Sign-Up) -->
+          <div id="passwordStrengthBox" class="hidden pt-1 transition-all">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5 font-medium">
+              <span>Security Analysis</span>
+              <span id="strengthText" class="font-bold text-emerald-400">Secure</span>
+            </div>
+            <div class="w-full bg-slate-800/80 rounded-full h-1.5 overflow-hidden flex gap-1 p-0.5">
+              <div id="meterBar1" class="h-full rounded-full flex-1 bg-emerald-400 transition-colors duration-300"></div>
+              <div id="meterBar2" class="h-full rounded-full flex-1 bg-emerald-400 transition-colors duration-300"></div>
+              <div id="meterBar3" class="h-full rounded-full flex-1 bg-emerald-400 transition-colors duration-300"></div>
+              <div id="meterBar4" class="h-full rounded-full flex-1 bg-emerald-400 transition-colors duration-300"></div>
+            </div>
+
+            <!-- Password Criteria Checklist -->
+            <div class="grid grid-cols-2 gap-2 mt-2.5 text-[11px] text-slate-400">
+              <div id="ruleLength" class="flex items-center gap-1.5 text-slate-200">
+                <i class="fa-solid fa-circle-check text-[10px] text-emerald-400"></i>
+                <span>Min 8 characters</span>
+              </div>
+              <div id="ruleNumber" class="flex items-center gap-1.5 text-slate-200">
+                <i class="fa-solid fa-circle-check text-[10px] text-emerald-400"></i>
+                <span>At least 1 number</span>
+              </div>
+              <div id="ruleUpper" class="flex items-center gap-1.5 text-slate-200">
+                <i class="fa-solid fa-circle-check text-[10px] text-emerald-400"></i>
+                <span>1 uppercase letter</span>
+              </div>
+              <div id="ruleSymbol" class="flex items-center gap-1.5 text-slate-200">
+                <i class="fa-solid fa-circle-check text-[10px] text-emerald-400"></i>
+                <span>1 special symbol</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Checkbox Options / Terms -->
+          <div class="flex items-center justify-between pt-1">
+            <label class="flex items-center gap-2.5 cursor-pointer text-xs text-slate-300 select-none">
+              <input type="checkbox" id="rememberMeCheckbox" checked class="hidden peer">
+              <div class="w-4 h-4 rounded-md border border-slate-600 peer-checked:border-brand-primary peer-checked:bg-gradient-to-r peer-checked:from-brand-primary peer-checked:to-brand-secondary flex items-center justify-center transition-all bg-slate-900/70">
+                <i class="fa-solid fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+              </div>
+              <span id="rememberLabel">Remember Nomaan on this device</span>
+            </label>
+            <span class="text-[11px] text-slate-500 font-mono">256-bit SSL</span>
+          </div>
+
+          <!-- Dynamic Submit Button with Loading State -->
+          <button type="submit" id="submitBtn" class="w-full mt-2 py-3.5 px-6 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:brightness-110 active:scale-[0.99] transition-all shadow-lg shadow-brand-glow flex items-center justify-center gap-2 relative overflow-hidden group">
+            <span class="absolute inset-0 w-1/2 h-full bg-white/20 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-in-out pointer-events-none"></span>
+            
+            <span id="submitBtnText" class="tracking-wide">Sign In as Nomaan Ahmad</span>
+            <i id="submitBtnIcon" class="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+            <i id="submitBtnSpinner" class="fa-solid fa-circle-notch fa-spin text-sm hidden"></i>
+          </button>
+        </form>
+
+        <!-- Alternate Switch helper -->
+        <div class="mt-6 pt-5 border-t border-slate-800/80 text-center text-xs text-slate-400">
+          <span id="toggleTextHelper">Not Nomaan Ahmad?</span>
+          <button type="button" id="toggleAltModeBtn" class="ml-1.5 font-semibold text-brand-primary hover:underline focus:outline-none">
+            Register new account
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Forgot Password Interactive Modal -->
+  <div id="forgotModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+    <div class="gradient-border-wrap w-full max-w-md transform scale-95 transition-transform duration-300" id="forgotModalCard">
+      <div class="glass-panel rounded-[1.45rem] p-6 sm:p-7 relative">
+        <button id="closeForgotModal" type="button" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="w-12 h-12 rounded-2xl bg-brand-primary/20 border border-brand-primary/40 flex items-center justify-center text-brand-primary mb-4">
+          <i class="fa-solid fa-key text-lg"></i>
+        </div>
+
+        <h3 class="text-xl font-bold font-display text-white">Reset Password</h3>
+        <p class="text-xs text-slate-400 mt-1 mb-5">
+          Recovery verification for <span class="text-slate-200 font-semibold">Nomaan Ahmad</span>. We will send an instant recovery token.
+        </p>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+            <input type="email" id="forgotEmailInput" value="nomaan.ahmad@example.com" placeholder="nomaan.ahmad@example.com" 
+                   class="glass-input w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none">
+          </div>
+          <button type="button" id="sendRecoveryBtn" class="w-full py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:brightness-110 transition-all flex items-center justify-center gap-2">
+            <span>Send Recovery Instructions</span>
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Footer Branding -->
+  <footer class="relative z-10 py-4 text-center text-xs text-slate-400 font-mono flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+    <span>Crafted with &hearts; for <strong class="text-slate-200 font-semibold">Nomaan Ahmad</strong></span>
+    <span class="hidden sm:inline">&bull;</span>
+    <span>GitHub Showcase Ready &bull; Zero Build Steps</span>
+  </footer>
+
+  <script>
+    /* 1. INTERACTIVE PARTICLE CANVAS BACKGROUND */
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particlesArray = [];
+    let mouse = { x: null, y: null, radius: 140 };
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+      
+      const moveX = (e.clientX - window.innerWidth / 2) * 0.03;
+      const moveY = (e.clientY - window.innerHeight / 2) * 0.03;
+      document.getElementById('orb1').style.transform = `translate(${moveX}px, ${moveY}px)`;
+      document.getElementById('orb2').style.transform = `translate(${-moveX * 1.3}px, ${-moveY * 1.3}px)`;
+      document.getElementById('orb3').style.transform = `translate(${moveX * 0.8}px, ${-moveY * 0.8}px)`;
+    });
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.6;
+        this.density = (Math.random() * 20) + 5;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
+      }
+
+      draw() {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+        if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
+
+        if (mouse.x && mouse.y) {
+          let dx = mouse.x - this.x;
+          let dy = mouse.y - this.y;
+          let distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < mouse.radius) {
+            const forceDirectionX = dx / distance;
+            const forceDirectionY = dy / distance;
+            const force = (mouse.radius - distance) / mouse.radius;
+            this.x -= forceDirectionX * force * this.density * 0.4;
+            this.y -= forceDirectionY * force * this.density * 0.4;
+          }
+        }
+      }
+    }
+
+    function initParticles() {
+      particlesArray = [];
+      const numberOfParticles = Math.min(Math.floor((canvas.width * canvas.height) / 14000), 85);
+      for (let i = 0; i < numberOfParticles; i++) {
+        particlesArray.push(new Particle());
+      }
+    }
+    initParticles();
+    window.addEventListener('resize', initParticles);
+
+    function connectParticles() {
+      for (let a = 0; a < particlesArray.length; a++) {
+        for (let b = a + 1; b < particlesArray.length; b++) {
+          const dx = particlesArray[a].x - particlesArray[b].x;
+          const dy = particlesArray[a].y - particlesArray[b].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 105) {
+            ctx.strokeStyle = `rgba(167, 139, 250, ${0.15 - dist / 700})`;
+            ctx.lineWidth = 0.7;
+            ctx.beginPath();
+            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particlesArray.length; i++) {
+        particlesArray[i].draw();
+        particlesArray[i].update();
+      }
+      connectParticles();
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    /* 2. THEME CUSTOMIZATION ENGINE */
+    const themeButtons = document.querySelectorAll('.theme-btn');
+    themeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selected = btn.dataset.themeChoice;
+        if (selected === 'default') {
+          document.documentElement.removeAttribute('data-theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', selected);
+        }
+        
+        themeButtons.forEach(b => b.classList.remove('ring-white'));
+        btn.classList.add('ring-white');
+        showToast(`Theme changed to ${btn.title}`, 'info');
+      });
+    });
+
+    /* 3. DUAL-MODE TOGGLE (SIGN IN vs SIGN UP) */
+    let currentMode = 'signin';
+    const signInTabBtn = document.getElementById('signInTabBtn');
+    const signUpTabBtn = document.getElementById('signUpTabBtn');
+    const tabIndicator = document.getElementById('tabIndicator');
+    const nameFieldGroup = document.getElementById('nameFieldGroup');
+    const passwordStrengthBox = document.getElementById('passwordStrengthBox');
+    const authHeading = document.getElementById('authHeading');
+    const authSubheading = document.getElementById('authSubheading');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const toggleTextHelper = document.getElementById('toggleTextHelper');
+    const toggleAltModeBtn = document.getElementById('toggleAltModeBtn');
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    const rememberLabel = document.getElementById('rememberLabel');
+
+    function setAuthMode(mode) {
+      currentMode = mode;
+      clearErrors();
+      
+      if (mode === 'signup') {
+        tabIndicator.style.transform = 'translateX(100%)';
+        signInTabBtn.classList.remove('text-white');
+        signInTabBtn.classList.add('text-slate-400');
+        signUpTabBtn.classList.add('text-white');
+        signUpTabBtn.classList.remove('text-slate-400');
+
+        nameFieldGroup.classList.remove('hidden');
+        passwordStrengthBox.classList.remove('hidden');
+        forgotPasswordBtn.classList.add('invisible');
+
+        authHeading.innerHTML = `Welcome to AuraAuth, <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">Nomaan</span>`;
+        authSubheading.innerText = 'Register your workspace with personalized credentials.';
+        submitBtnText.innerText = 'Create Account for Nomaan Ahmad';
+        toggleTextHelper.innerText = 'Already have an account?';
+        toggleAltModeBtn.innerText = 'Sign in as Nomaan';
+        rememberLabel.innerText = 'I accept developer terms & conditions';
+      } else {
+        tabIndicator.style.transform = 'translateX(0%)';
+        signUpTabBtn.classList.remove('text-white');
+        signUpTabBtn.classList.add('text-slate-400');
+        signInTabBtn.classList.add('text-white');
+        signInTabBtn.classList.remove('text-slate-400');
+
+        nameFieldGroup.classList.add('hidden');
+        passwordStrengthBox.classList.add('hidden');
+        forgotPasswordBtn.classList.remove('invisible');
+
+        authHeading.innerHTML = `Welcome back, <span class="bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">Nomaan Ahmad</span>`;
+        authSubheading.innerText = 'Access your developer console and cloud workspaces.';
+        submitBtnText.innerText = 'Sign In as Nomaan Ahmad';
+        toggleTextHelper.innerText = 'Not Nomaan Ahmad?';
+        toggleAltModeBtn.innerText = 'Register new account';
+        rememberLabel.innerText = 'Remember Nomaan on this device';
+      }
+    }
+
+    signInTabBtn.addEventListener('click', () => setAuthMode('signin'));
+    signUpTabBtn.addEventListener('click', () => setAuthMode('signup'));
+    toggleAltModeBtn.addEventListener('click', () => {
+      setAuthMode(currentMode === 'signin' ? 'signup' : 'signin');
+    });
+
+    /* 4. PASSWORD VISIBILITY TOGGLE */
+    const passwordInput = document.getElementById('passwordInput');
+    const togglePasswordVisibility = document.getElementById('togglePasswordVisibility');
+    const pwdEyeIcon = document.getElementById('pwdEyeIcon');
+
+    togglePasswordVisibility.addEventListener('click', () => {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+      pwdEyeIcon.className = isPassword ? 'fa-regular fa-eye-slash text-sm' : 'fa-regular fa-eye text-sm';
+    });
+
+    /* 5. LIVE INPUT VALIDATION & STRENGTH METER */
+    const emailInput = document.getElementById('emailInput');
+    const emailCheckIcon = document.getElementById('emailCheckIcon');
+    const emailValidationFeedback = document.getElementById('emailValidationFeedback');
+
+    function validateEmailFormat(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    emailInput.addEventListener('input', () => {
+      const val = emailInput.value.trim();
+      if (!val) {
+        emailCheckIcon.style.opacity = '0';
+        emailValidationFeedback.classList.add('hidden');
+        return;
+      }
+
+      if (validateEmailFormat(val)) {
+        emailCheckIcon.style.opacity = '1';
+        emailValidationFeedback.classList.remove('hidden');
+        emailValidationFeedback.innerText = 'Valid format';
+        emailValidationFeedback.className = 'text-[11px] font-mono text-emerald-400';
+      } else {
+        emailCheckIcon.style.opacity = '0';
+        emailValidationFeedback.classList.remove('hidden');
+        emailValidationFeedback.innerText = 'Checking...';
+        emailValidationFeedback.className = 'text-[11px] font-mono text-slate-500';
+      }
+    });
+
+    const meterBars = [
+      document.getElementById('meterBar1'),
+      document.getElementById('meterBar2'),
+      document.getElementById('meterBar3'),
+      document.getElementById('meterBar4')
+    ];
+    const strengthText = document.getElementById('strengthText');
+    const ruleLength = document.getElementById('ruleLength');
+    const ruleNumber = document.getElementById('ruleNumber');
+    const ruleUpper = document.getElementById('ruleUpper');
+    const ruleSymbol = document.getElementById('ruleSymbol');
+
+    function updateRule(element, passed) {
+      const icon = element.querySelector('i');
+      if (passed) {
+        icon.className = 'fa-solid fa-circle-check text-[10px] text-emerald-400';
+        element.classList.remove('text-slate-400');
+        element.classList.add('text-slate-200');
+      } else {
+        icon.className = 'fa-solid fa-circle text-[6px] text-slate-600';
+        element.classList.remove('text-slate-200');
+        element.classList.add('text-slate-400');
+      }
+    }
+
+    passwordInput.addEventListener('input', () => {
+      const pwd = passwordInput.value;
+      const hasLength = pwd.length >= 8;
+      const hasNumber = /\d/.test(pwd);
+      const hasUpper = /[A-Z]/.test(pwd);
+      const hasSymbol = /[^A-Za-z0-9]/.test(pwd);
+
+      updateRule(ruleLength, hasLength);
+      updateRule(ruleNumber, hasNumber);
+      updateRule(ruleUpper, hasUpper);
+      updateRule(ruleSymbol, hasSymbol);
+
+      let score = [hasLength, hasNumber, hasUpper, hasSymbol].filter(Boolean).length;
+
+      meterBars.forEach(bar => {
+        bar.className = 'h-full rounded-full flex-1 bg-slate-700 transition-colors duration-300';
+      });
+
+      if (pwd.length === 0) {
+        strengthText.innerText = 'Empty';
+        strengthText.className = 'font-bold text-slate-500';
+        return;
+      }
+
+      if (score <= 1) {
+        meterBars[0].className = 'h-full rounded-full flex-1 bg-rose-500 transition-colors duration-300';
+        strengthText.innerText = 'Weak';
+        strengthText.className = 'font-bold text-rose-400';
+      } else if (score === 2) {
+        meterBars[0].className = 'h-full rounded-full flex-1 bg-amber-400 transition-colors duration-300';
+        meterBars[1].className = 'h-full rounded-full flex-1 bg-amber-400 transition-colors duration-300';
+        strengthText.innerText = 'Medium';
+        strengthText.className = 'font-bold text-amber-400';
+      } else if (score === 3) {
+        meterBars[0].className = 'h-full rounded-full flex-1 bg-cyan-400 transition-colors duration-300';
+        meterBars[1].className = 'h-full rounded-full flex-1 bg-cyan-400 transition-colors duration-300';
+        meterBars[2].className = 'h-full rounded-full flex-1 bg-cyan-400 transition-colors duration-300';
+        strengthText.innerText = 'Good';
+        strengthText.className = 'font-bold text-cyan-400';
+      } else {
+        meterBars.forEach(bar => {
+          bar.className = 'h-full rounded-full flex-1 bg-emerald-400 transition-colors duration-300';
+        });
+        strengthText.innerText = 'Secure';
+        strengthText.className = 'font-bold text-emerald-400';
+      }
+    });
+
+    /* 6. FORM SUBMISSION & CELEBRATION TOAST */
+    const authForm = document.getElementById('authForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnSpinner = document.getElementById('submitBtnSpinner');
+    const submitBtnIcon = document.getElementById('submitBtnIcon');
+    const nameInput = document.getElementById('nameInput');
+
+    function showError(elementId, message) {
+      const errEl = document.getElementById(elementId);
+      errEl.innerText = message;
+      errEl.classList.remove('hidden');
+    }
+
+    function clearErrors() {
+      document.getElementById('nameError').classList.add('hidden');
+      document.getElementById('emailError').classList.add('hidden');
+      document.getElementById('passwordError').classList.add('hidden');
+    }
+
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      let hasError = false;
+
+      if (currentMode === 'signup' && !nameInput.value.trim()) {
+        showError('nameError', 'Please provide a valid full name.');
+        hasError = true;
+      }
+
+      if (!validateEmailFormat(emailInput.value.trim())) {
+        showError('emailError', 'Please enter a valid email address.');
+        hasError = true;
+      }
+
+      if (passwordInput.value.length < 6) {
+        showError('passwordError', 'Password must have at least 6 characters.');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      submitBtn.disabled = true;
+      submitBtnSpinner.classList.remove('hidden');
+      submitBtnIcon.classList.add('hidden');
+      submitBtn.classList.add('opacity-90', 'cursor-not-allowed');
+
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        submitBtnSpinner.classList.add('hidden');
+        submitBtnIcon.classList.remove('hidden');
+        submitBtn.classList.remove('opacity-90', 'cursor-not-allowed');
+
+        if (typeof confetti === 'function') {
+          confetti({
+            particleCount: 90,
+            spread: 75,
+            origin: { y: 0.65 },
+            colors: ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ec4899']
+          });
+        }
+
+        const actionWord = currentMode === 'signup' 
+          ? `Welcome to AuraAuth, Nomaan Ahmad! Account verified.` 
+          : `Welcome back, Nomaan Ahmad! Access granted.`;
+        showToast(actionWord, 'success');
+      }, 1400);
+    });
+
+    /* 7. FORGOT PASSWORD MODAL FLOW */
+    const forgotModal = document.getElementById('forgotModal');
+    const forgotModalCard = document.getElementById('forgotModalCard');
+    const closeForgotModal = document.getElementById('closeForgotModal');
+    const sendRecoveryBtn = document.getElementById('sendRecoveryBtn');
+    const forgotEmailInput = document.getElementById('forgotEmailInput');
+
+    forgotPasswordBtn.addEventListener('click', () => {
+      forgotEmailInput.value = emailInput.value.trim();
+      forgotModal.classList.remove('opacity-0', 'pointer-events-none');
+      forgotModalCard.classList.remove('scale-95');
+      forgotModalCard.classList.add('scale-100');
+    });
+
+    function hideForgotModal() {
+      forgotModalCard.classList.remove('scale-100');
+      forgotModalCard.classList.add('scale-95');
+      forgotModal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    closeForgotModal.addEventListener('click', hideForgotModal);
+    forgotModal.addEventListener('click', (e) => {
+      if (e.target === forgotModal) hideForgotModal();
+    });
+
+    sendRecoveryBtn.addEventListener('click', () => {
+      const email = forgotEmailInput.value.trim();
+      if (!validateEmailFormat(email)) {
+        showToast('Please provide a valid recovery email address', 'error');
+        return;
+      }
+      sendRecoveryBtn.disabled = true;
+      sendRecoveryBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Dispatching...`;
+      
+      setTimeout(() => {
+        sendRecoveryBtn.disabled = false;
+        sendRecoveryBtn.innerHTML = `<span>Send Recovery Instructions</span> <i class="fa-solid fa-paper-plane text-xs"></i>`;
+        hideForgotModal();
+        showToast(`Recovery link sent to ${email}`, 'success');
+      }, 1200);
+    });
+
+    /* 8. TOAST NOTIFICATION COMPONENT */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let icon = 'fa-circle-info text-cyan-400';
+      if (type === 'success') icon = 'fa-circle-check text-emerald-400';
+      if (type === 'error') icon = 'fa-triangle-exclamation text-rose-400';
+
+      toast.className = 'pointer-events-auto flex items-center gap-3 bg-slate-900/95 text-slate-100 border border-white/10 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-lg transform translate-y-4 opacity-0 transition-all duration-300 text-sm';
+      toast.innerHTML = `
+        <i class="fa-solid ${icon} text-base"></i>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-4', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 4200);
+    }
+  </script>
+</body>
+</html>
